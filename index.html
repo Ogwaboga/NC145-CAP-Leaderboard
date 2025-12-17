@@ -6,7 +6,7 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f7f9;
+      background-color: #92c2e0;
       margin: 0;
       padding: 20px;
       text-align: center;
@@ -20,7 +20,7 @@
     table {
       margin: auto;
       border-collapse: collapse;
-      width: 75%;
+      width: 50%;
       background-color: #fff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       border-radius: 8px;
@@ -49,7 +49,7 @@
   </style>
 </head>
 <body>
-  <h1>Alpha Flight Leaderboard</h1>
+  <h1>Flight Leaderboard</h1>
   <table id="leaderboard">
     <tr>
       <th>Rank</th>
@@ -60,14 +60,14 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRgdU-vCcWn3fcZW4IxotUSnIgLldFM8umzT0uj5fwMSWWO2JPXRCeAT-31KLYagJa27q2qFYukvLe/pub?gid=0&single=true&output=csv"; // Replace with your published CSV link
+    const csvUrl = "YOUR_GOOGLE_SHEET_CSV_LINK_HERE"; // Replace with your Google Sheet CSV link
 
     async function loadLeaderboard() {
       const response = await fetch(csvUrl);
       const csvText = await response.text();
       const data = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
 
-      // Clean up keys and calculate Total Points if empty
+      // Clean keys and calculate Total Points if empty
       data.forEach(row => {
         for (let key in row) {
           const trimmedKey = key.trim();
@@ -77,30 +77,22 @@
           }
         }
 
-        // Calculate Total Points if empty
-        if (!row["Total Points"] || row["Total Points"] === "") {
-          const ae = parseInt(row["AE/Leadership"]) || 0;
-          const drill = parseInt(row["Drill"]) || 0;
-          const prb = parseInt(row["PRB"]) || 0;
-          const attendance = parseInt(row["Attendance"]) || 0;
-          const emails = parseInt(row["Emails"]) || 0;
-          const promotion = parseInt(row["Promotion"]) || 0;
+        const ae = parseInt(row["AE/Leadership"]) || 0;
+        const drill = parseInt(row["Drill"]) || 0;
+        const prb = parseInt(row["PRB"]) || 0;
+        const attendance = parseInt(row["Attendance"]) || 0;
+        const emails = parseInt(row["Emails"]) || 0;
+        const promotion = parseInt(row["Promotion"]) || 0;
 
-          row["Total Points"] = ae*1 + drill*1 + prb*2 + attendance*1 + emails*1 + promotion*5;
-        } else {
-          row["Total Points"] = parseInt(row["Total Points"]);
-        }
+        row["Total Points"] = ae*1 + drill*1 + prb*2 + attendance*1 + emails*1 + promotion*5;
 
-        // Map for table
-        row["Name"] = row["Element Name"];
-        row["Element"] = "N/A"; // Optional: you can fill this column if needed
+        row["Name"] = row["Element Name"]; // Map name for leaderboard
       });
 
-      // Sort by Total Points descending
+      // Sort descending by points
       data.sort((a, b) => b["Total Points"] - a["Total Points"]);
 
       const table = document.getElementById('leaderboard');
-      // Remove old rows
       table.querySelectorAll("tr:not(:first-child)").forEach(tr => tr.remove());
 
       data.forEach((row, index) => {
@@ -112,7 +104,6 @@
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td>${row["Name"]}</td>
-          <td>${row["Element"]}</td>
           <td>${row["Total Points"]}</td>
         `;
         table.appendChild(tr);
@@ -124,5 +115,3 @@
   </script>
 </body>
 </html>
-
-
