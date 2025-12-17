@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Leaderboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    table { margin: auto; border-collapse: collapse; width: 50%; }
+    th, td { border: 1px solid #333; padding: 8px; }
+    th { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>Leaderboard</h1>
+  <table id="leaderboard">
+    <tr><th>Name</th><th>Points</th></tr>
+  </table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRgdU-vCcWn3fcZW4IxotUSnIgLldFM8umzT0uj5fwMSWWO2JPXRCeAT-31KLYagJa27q2qFYukvLe/pub?output=csv"; // replace with your sheet link
+
+    async function loadLeaderboard() {
+      const response = await fetch(csvUrl);
+      const csvText = await response.text();
+      const data = Papa.parse(csvText, { header: true }).data;
+
+      // Sort by Points descending
+      data.sort((a, b) => parseInt(b.Points) - parseInt(a.Points));
+
+      const table = document.getElementById('leaderboard');
+      // Remove old rows
+      table.querySelectorAll("tr:not(:first-child)").forEach(tr => tr.remove());
+
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.Name}</td><td>${row.Points}</td>`;
+        table.appendChild(tr);
+      });
+    }
+
+    loadLeaderboard();
+    // Optional: refresh every 30 seconds
+    setInterval(loadLeaderboard, 30000);
+  </script>
+</body>
+</html>
