@@ -53,8 +53,8 @@
   <table id="leaderboard">
     <tr>
       <th>Rank</th>
-      <th>Name</th>
-      <th>Points</th>
+      <th>Element Name</th>
+      <th>Total Points</th>
     </tr>
   </table>
 
@@ -67,16 +67,8 @@
       const csvText = await response.text();
       const data = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
 
-      // Clean keys and calculate Total Points if empty
       data.forEach(row => {
-        for (let key in row) {
-          const trimmedKey = key.trim();
-          if (trimmedKey !== key) {
-            row[trimmedKey] = row[key];
-            delete row[key];
-          }
-        }
-
+        // Parse numeric values
         const ae = parseInt(row["AE/Leadership"]) || 0;
         const drill = parseInt(row["Drill"]) || 0;
         const prb = parseInt(row["PRB"]) || 0;
@@ -84,17 +76,18 @@
         const emails = parseInt(row["Emails"]) || 0;
         const promotion = parseInt(row["Promotion"]) || 0;
 
+        // Calculate Total Points
         row["Total Points"] = ae*1 + drill*1 + prb*2 + attendance*1 + emails*1 + promotion*5;
-
-        row["Name"] = row["Element Name"]; // Map name for leaderboard
       });
 
-      // Sort descending by points
+      // Sort by Total Points descending
       data.sort((a, b) => b["Total Points"] - a["Total Points"]);
 
       const table = document.getElementById('leaderboard');
+      // Remove old rows
       table.querySelectorAll("tr:not(:first-child)").forEach(tr => tr.remove());
 
+      // Add new rows
       data.forEach((row, index) => {
         const tr = document.createElement('tr');
         if (index === 0) tr.classList.add('gold');
@@ -103,7 +96,7 @@
 
         tr.innerHTML = `
           <td>${index + 1}</td>
-          <td>${row["Name"]}</td>
+          <td>${row["Element Name"]}</td>
           <td>${row["Total Points"]}</td>
         `;
         table.appendChild(tr);
@@ -115,4 +108,3 @@
   </script>
 </body>
 </html>
-
