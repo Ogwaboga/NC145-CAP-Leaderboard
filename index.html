@@ -60,47 +60,60 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRgdU-vCcWn3fcZW4IxotUSnIgLldFM8umzT0uj5fwMSWWO2JPXRCeAT-31KLYagJa27q2qFYukvLe/pub?gid=0&single=true&output=csv"; // Replace with your Google Sheet CSV link
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRgdU-vCcWn3fcZW4IxotUSnIgLldFM8umzT0uj5fwMSWWO2JPXRCeAT-31KLYagJa27q2qFYukvLe/pub?gid=0&single=true&output=csv"; // Replace with your published Google Sheet CSV link
 
     async function loadLeaderboard() {
-      const response = await fetch(csvUrl);
-      const csvText = await response.text();
-      const data = Papa.parse(csvText, { header: true, skipEmptyLines: true }).data;
+      try {
+        const response = await fetch(csvUrl);
+        if (!response.ok) throw new Error("Could not fetch CSV");
+        const csvText = await response.text();
 
-      data.forEach(row => {
-        // Parse numeric values
-        const ae = parseInt(row["AE/Leadership"]) || 0;
-        const drill = parseInt(row["Drill"]) || 0;
-        const prb = parseInt(row["PRB"]) || 0;
-        const attendance = parseInt(row["Attendance"]) || 0;
-        const emails = parseInt(row["Emails"]) || 0;
-        const promotion = parseInt(row["Promotion"]) || 0;
+        const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        let data = parsed.data;
 
-        // Calculate Total Points
-        row["Total Points"] = ae*1 + drill*1 + prb*2 + attendance*1 + emails*1 + promotion*5;
-      });
+        data = data.map(row => {
+          // Normalize keys: remove spaces and make lowercase
+          const cleanRow = {};
+          for (let key in row) {
+            cleanRow[key.trim().toLowerCase()] = row[key].trim();
+          }
 
-      // Sort by Total Points descending
-      data.sort((a, b) => b["Total Points"] - a["Total Points"]);
+          const ae = parseInt(cleanRow["ae/leadership"]) || 0;
+          const drill = parseInt(cleanRow["drill"]) || 0;
+          const prb = parseInt(cleanRow["prb"]) || 0;
+          const attendance = parseInt(cleanRow["attendance"]) || 0;
+          const emails = parseInt(cleanRow["emails"]) || 0;
+          const promotion = parseInt(cleanRow["promotion"]) || 0;
 
-      const table = document.getElementById('leaderboard');
-      // Remove old rows
-      table.querySelectorAll("tr:not(:first-child)").forEach(tr => tr.remove());
+          return {
+            name: cleanRow["element name"] || "Unknown",
+            totalPoints: ae*1 + drill*1 + prb*2 + attendance*1 + emails*1 + promotion*5
+          };
+        });
 
-      // Add new rows
-      data.forEach((row, index) => {
-        const tr = document.createElement('tr');
-        if (index === 0) tr.classList.add('gold');
-        else if (index === 1) tr.classList.add('silver');
-        else if (index === 2) tr.classList.add('bronze');
+        // Sort descending by total points
+        data.sort((a,b) => b.totalPoints - a.totalPoints);
 
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${row["Element Name"]}</td>
-          <td>${row["Total Points"]}</td>
-        `;
-        table.appendChild(tr);
-      });
+        const table = document.getElementById("leaderboard");
+        table.querySelectorAll("tr:not(:first-child)").forEach(tr => tr.remove());
+
+        data.forEach((row, index) => {
+          const tr = document.createElement("tr");
+          if (index === 0) tr.classList.add("gold");
+          else if (index === 1) tr.classList.add("silver");
+          else if (index === 2) tr.classList.add("bronze");
+
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${row.name}</td>
+            <td>${row.totalPoints}</td>
+          `;
+          table.appendChild(tr);
+        });
+
+      } catch (error) {
+        console.error("Error loading leaderboard:", error);
+      }
     }
 
     loadLeaderboard();
@@ -108,4 +121,3 @@
   </script>
 </body>
 </html>
-
