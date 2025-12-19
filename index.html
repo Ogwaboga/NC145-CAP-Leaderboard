@@ -8,48 +8,65 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #92c2e0;
       margin: 0;
-      padding: 20px;
+      padding: 30px;
       text-align: center;
+      font-size: 18px;
     }
 
     h1 {
       color: #333;
       margin-bottom: 30px;
+      font-size: 3em;
     }
 
     table {
       margin: auto;
       border-collapse: collapse;
-      width: 50%;
+      width: 70%;
       background-color: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      border-radius: 8px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      border-radius: 10px;
       overflow: hidden;
     }
 
     th, td {
-      padding: 12px 20px;
+      padding: 18px 28px;
       border-bottom: 1px solid #ddd;
       text-align: center;
-      font-size: 1.1em;
+      font-size: 1.3em;
     }
 
     th {
       background-color: #2c3e50;
       color: #fff;
+      font-size: 1.4em;
     }
 
-    tr:nth-child(even) {
+    tr:nth-child(even):not(.gold):not(.silver):not(.bronze) {
       background-color: #f9f9f9;
     }
 
-    .gold { background-color: #FFD700; font-weight: bold; }
-    .silver { background-color: #C0C0C0; font-weight: bold; }
-    .bronze { background-color: #CD7F32; font-weight: bold; }
+    /* Medal colors – force priority */
+    .gold {
+      background-color: #FFD700 !important;
+      font-weight: bold;
+    }
+
+    .silver {
+      background-color: #C0C0C0 !important;
+      font-weight: bold;
+    }
+
+    .bronze {
+      background-color: #CD7F32 !important;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
+
   <h1>Alpha Flight Leaderboard</h1>
+
   <table id="leaderboard">
     <tr>
       <th>Rank</th>
@@ -60,7 +77,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRgdU-vCcWn3fcZW4IxotUSnIgLldFM8umzT0uj5fwMSWWO2JPXRCeAT-31KLYagJa27q2qFYukvLe/pub?gid=0&single=true&output=csv"; // Replace with your published Google Sheet CSV link
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSRgdU-vCcWn3fcZW4IxotUSnIgLldFM8umzT0uj5fwMSWWO2JPXRCeAT-31KLYagJa27q2qFYukvLe/pub?gid=0&single=true&output=csv";
 
     async function loadLeaderboard() {
       try {
@@ -72,7 +89,6 @@
         let data = parsed.data;
 
         data = data.map(row => {
-          // Normalize keys: remove spaces and make lowercase
           const cleanRow = {};
           for (let key in row) {
             cleanRow[key.trim().toLowerCase()] = row[key].trim();
@@ -87,18 +103,18 @@
 
           return {
             name: cleanRow["element name"] || "Unknown",
-            totalPoints: ae*1 + drill*1 + prb*2 + attendance*1 + emails*1 + promotion*5
+            totalPoints: ae + drill + prb*2 + attendance + emails + promotion*5
           };
         });
 
-        // Sort descending by total points
-        data.sort((a,b) => b.totalPoints - a.totalPoints);
+        data.sort((a, b) => b.totalPoints - a.totalPoints);
 
         const table = document.getElementById("leaderboard");
         table.querySelectorAll("tr:not(:first-child)").forEach(tr => tr.remove());
 
         data.forEach((row, index) => {
           const tr = document.createElement("tr");
+
           if (index === 0) tr.classList.add("gold");
           else if (index === 1) tr.classList.add("silver");
           else if (index === 2) tr.classList.add("bronze");
@@ -117,7 +133,8 @@
     }
 
     loadLeaderboard();
-    setInterval(loadLeaderboard, 30000); // Refresh every 30 seconds
+    setInterval(loadLeaderboard, 30000);
   </script>
+
 </body>
 </html>
